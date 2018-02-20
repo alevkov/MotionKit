@@ -2,7 +2,7 @@
 //  MotionKit.h
 //  MotionKit
 //
-//  Created by sphota on 2/16/18.
+//  Created by lexlevi17 on 2/16/18.
 //  Copyright © 2018 lexlevi17. All rights reserved.
 //
 
