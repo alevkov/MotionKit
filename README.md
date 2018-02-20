@@ -2,7 +2,7 @@
 
 A lightweight wrapper around some CoreMotion utilities for subscribing to motion sensor data.
 
-```
+```Swift
 do {
   let _ = try MotionKit()
     .update(.Accelerometer, every: 0.3)
