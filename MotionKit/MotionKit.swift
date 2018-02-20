@@ -2,8 +2,8 @@
 //  MotionKit.swift
 //  TrackSense
 //
-//  Created by sphota on 8/25/17.
-//  Copyright © 2017 TwoSense. All rights reserved.
+//  Created by lexlevi17 on 8/25/17.
+//  Copyright © 2017 Aleksey Levkovskyi. All rights reserved.
 //
 
 import Foundation
