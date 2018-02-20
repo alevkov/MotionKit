@@ -3,7 +3,7 @@
 //  TrackSense
 //
 //  Created by lexlevi17 on 8/25/17.
-//  Copyright © 2017 Aleksey Levkovskyi. All rights reserved.
+//  Copyright © 2017 lexlevi17. All rights reserved.
 //
 
 import Foundation
