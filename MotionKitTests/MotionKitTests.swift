@@ -7,8 +7,8 @@
 //
 
 import XCTest
-@testable import MotionKit
 import CoreMotion
+@testable import MotionKit
 
 class MotionKitTests: XCTestCase {
   
@@ -16,19 +16,28 @@ class MotionKitTests: XCTestCase {
     super.setUp()
     do {
       let _ = try MotionKit()
-        .update(.Accelerometer, every: 0.3)
-        .update(.Gyroscope, every: 0.3)
-        .update(.Magnetometer, every: 0.3)
-        .update(.DeviceMotion, every: 1)
-        .subcribe(.Accelerometer) { (event, error) in
-          guard let data = event as? CMAccelerometerData  else {
+        .update(.Accelerometer, every: 0.3, .Seconds)
+        .update(.Gyroscope, every: 0.3, .Seconds)
+        .update(.Magnetometer, every: 0.3, .Seconds)
+        .update(.DeviceMotion, every: 1, .Seconds)
+        .subcribe(.Accelerometer) { (motion, error) in
+          guard let data = motion as? Acceleration else {
             XCTFail()
             return
           }
           print(data)
-      }
+        }
+        .subcribe(.Gyroscope, handler: { (motion, error) in
+          guard let data = motion as? Rotation else {
+            XCTFail()
+            return
+          }
+          print(data)
+        })
+    } catch let error as MKError {
+      print("Error: \(error)")
     } catch {
-      
+      XCTFail()
     }
   }
   
@@ -38,35 +47,29 @@ class MotionKitTests: XCTestCase {
   
   func testExample() {
     let kit = MotionKit()
-        .update(.Accelerometer, every: 0.3)
-        .update(.Gyroscope, every: 0.3)
-        .update(.Magnetometer, every: 0.3)
-        .update(.DeviceMotion, every: 1)
+        .update(.Accelerometer, every: 0.3, .Seconds)
+        .update(.Gyroscope, every: 0.3, .Seconds)
+        .update(.Magnetometer, every: 0.3, .Seconds)
+        .update(.DeviceMotion, every: 1, .Seconds)
 
     XCTAssert(kit.intervalDict[.Accelerometer] == 0.3)
     XCTAssert(kit.intervalDict[.Gyroscope] == 0.3)
     XCTAssert(kit.intervalDict[.Magnetometer] == 0.3)
     XCTAssert(kit.intervalDict[.DeviceMotion] == 1)
     
-    let _ = kit.updateAll(every: 0.5)
+    let _ = kit.updateAll(every: 0.5, .Seconds)
     
     XCTAssert(kit.intervalDict[.Accelerometer] == 0.5)
     XCTAssert(kit.intervalDict[.Gyroscope] == 0.5)
     XCTAssert(kit.intervalDict[.Magnetometer] == 0.5)
     XCTAssert(kit.intervalDict[.DeviceMotion] == 0.5)
     
-    let _ = kit.updateAll(except: [.Accelerometer], every: 0.7)
+    let _ = kit.updateAll(except: [.Accelerometer], every: 0.7, .Seconds)
     
     XCTAssert(kit.intervalDict[.Accelerometer] == 0.5)
     XCTAssert(kit.intervalDict[.Gyroscope] == 0.7)
     XCTAssert(kit.intervalDict[.Magnetometer] == 0.7)
     XCTAssert(kit.intervalDict[.DeviceMotion] == 0.7)
-  }
-  
-  func testPerformanceExample() {
-    self.measure {
-      
-    }
   }
   
 }

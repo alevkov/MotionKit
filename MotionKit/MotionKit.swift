@@ -9,79 +9,7 @@
 import Foundation
 import CoreMotion
 
-public enum MKSensorType {
-  case Accelerometer
-  case Gyroscope
-  case Magnetometer
-  case Altimeter
-  case DeviceMotion
-}
-
-public enum MKError: Error {
-  case AccelerometerNotAvailable
-  case GyroscopeNotAvailable
-  case MagnetometerNotAvailable
-  case DeviceMotionNotAvailable
-  case AltimeterNotAvailable
-  case UknownSensorType
-  case SensorIntervalNotSet
-}
-
-public protocol MotionKitProtocol {
-  /**
-   Subcribe to a parrticular motion sensor.
-   
-   - parameter to: the sensor to which we are subscribing.
-   - parameter handler: the sensor event handler.
-   
-   - throws: MKError.
-   
-   - returns: the current MotionKit instance.
-  */
-  func subcribe(_ to: MKSensorType, handler: @escaping (_ event: CMLogItem?, _ error: Error?) -> ()) throws -> MotionKit
-  
-  /**
-   Unsubscribe from a parrticular motion sensor.
-   
-   - parameter from: the sensor from which we are unsubscribing.
-   
-   - throws: MKError.
-   
-   - returns: the current MotionKit instance.
-   */
-  func unsubscribe(_ from: MKSensorType) throws -> MotionKit
-  
-  /**
-   Set the sampling period for a sensor. Will have no effect on the Altimeter sampling period.
-   
-   - parameter sensor: the sensor for which we are setting the sampling period.
-   - parameter every: the sampling TimeInterval in seconds.
-   
-   - returns: the current MotionKit instance.
-   */
-  func update(_ sensor: MKSensorType, every: TimeInterval) -> MotionKit
-  
-  /**
-   Set the sampling period for all motion sensors (except Altimeter).
-   
-   - parameter every: the sampling TimeInterval in seconds.
-   
-   - returns: the current MotionKit instance.
-   */
-  func updateAll(every: TimeInterval) -> MotionKit
-  
-  /**
-   Set the sampling period for all motion sensors (except the provided list of sensors, and Altimeter).
-   
-   - parameter every: the sampling TimeInterval in seconds.
-   - parameter except: the list of sensors for which the TimeInterval will not be set.
-   
-   - returns: the current MotionKit instance.
-   */
-  func updateAll(except: [MKSensorType], every: TimeInterval) -> MotionKit
-}
-
-public final class MotionKit: MotionKitProtocol {
+public final class MotionKit: MKProtocol {
   
   internal var intervalDict: Dictionary<MKSensorType, TimeInterval>
   internal let altimeter = CMAltimeter()
@@ -95,34 +23,37 @@ public final class MotionKit: MotionKitProtocol {
     self.intervalDict = Dictionary<MKSensorType, TimeInterval>()
   }
   
-  public func update(_ sensor: MKSensorType, every: TimeInterval) -> MotionKit  {
+  public func update(_ sensor: MKSensorType, every: TimeInterval, _ timeInterval: MKTimeInterval) -> MotionKit  {
     guard self.strictlyMotionSensors.contains(sensor) else {
       return self
     }
-    self.intervalDict[sensor] = every
+    let timeInterval: TimeInterval = self.convertToSeconds(every, timeInterval)
+    self.intervalDict[sensor] = timeInterval
     return self
   }
   
-  public func updateAll(every: TimeInterval) -> MotionKit {
+  public func updateAll(every: TimeInterval, _ timeInterval: MKTimeInterval) -> MotionKit {
     for key in self.intervalDict.keys {
       if self.strictlyMotionSensors.contains(key) {
-        self.intervalDict[key] = every
+        let timeInterval: TimeInterval = self.convertToSeconds(every, timeInterval)
+        self.intervalDict[key] = timeInterval
       }
     }
     return self
   }
   
-  public func updateAll(except: [MKSensorType], every: TimeInterval) -> MotionKit {
+  public func updateAll(except: [MKSensorType], every: TimeInterval, _ timeInterval: MKTimeInterval) -> MotionKit {
     for key in self.intervalDict.keys {
       if self.strictlyMotionSensors.contains(key) && !except.contains(key) {
-        self.intervalDict[key] = every
+        let timeInterval: TimeInterval = self.convertToSeconds(every, timeInterval)
+        self.intervalDict[key] = timeInterval
       }
     }
     return self
   }
   
   public func subcribe(_ to: MKSensorType,
-                       handler: @escaping (CMLogItem?, Error?) -> ()) throws -> MotionKit {
+                       handler: @escaping (AbstractMotion?, Error?) -> ()) throws -> MotionKit {
     
     switch to {
     case .Accelerometer:
@@ -140,7 +71,9 @@ public final class MotionKit: MotionKitProtocol {
           handler(nil, error)
           return
         }
-        handler(data, nil)
+        guard let d = data else { handler(nil, MKError.AccelerometerNotAvailable); return }
+        let acceleration = Acceleration(d.timestamp, d.acceleration.x, d.acceleration.y, d.acceleration.z)
+        handler(acceleration, nil)
       })
       
       break
@@ -160,7 +93,9 @@ public final class MotionKit: MotionKitProtocol {
           handler(nil, error)
           return
         }
-        handler(data, nil)
+        guard let d = data else { handler(nil, MKError.GyroscopeNotAvailable); return }
+        let rotation = Rotation(d.timestamp, d.rotationRate.x, d.rotationRate.y, d.rotationRate.z)
+        handler(rotation, nil)
       })
       
       break
@@ -180,7 +115,9 @@ public final class MotionKit: MotionKitProtocol {
           handler(nil, error)
           return
         }
-        handler(data, nil)
+        guard let d = data else { handler(nil, MKError.MagnetometerNotAvailable); return }
+        let magfield = MagneticField(d.timestamp, d.magneticField.x, d.magneticField.y, d.magneticField.z)
+        handler(magfield, nil)
       })
       
       break
@@ -200,7 +137,9 @@ public final class MotionKit: MotionKitProtocol {
           handler(nil, error)
           return
         }
-        handler(data, nil)
+        guard let d = data else { handler(nil, MKError.DeviceMotionNotAvailable); return }
+        let motion = DeviceMotion(d)
+        handler(motion, nil)
       })
       
       break
@@ -215,7 +154,9 @@ public final class MotionKit: MotionKitProtocol {
           handler(nil, error)
           return
         }
-        handler(data, nil)
+        guard let d = data else { handler(nil, MKError.AltimeterNotAvailable); return }
+        let altitude = Altitude(d.timestamp, d.relativeAltitude, d.pressure)
+        handler(altitude, nil)
       }
       
       break
@@ -274,5 +215,26 @@ public final class MotionKit: MotionKitProtocol {
     }
     
     return self
+  }
+  
+  private func convertToSeconds(_ value: TimeInterval, _ interval: MKTimeInterval) -> TimeInterval {
+    var val: TimeInterval = value
+    switch interval {
+    case .Nanoseconds:
+      val /= 1000_000_000
+      break
+    case .Microseconds:
+      val /= 1000_000
+      break
+    case .Milliseconds:
+      val /= 1000
+      break
+    case .Seconds:
+      break
+    case .Minutes:
+      val *= 60
+      break
+    }
+    return val
   }
 }
