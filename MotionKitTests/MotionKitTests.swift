@@ -34,7 +34,7 @@ class MotionKitTests: XCTestCase {
           }
           print(data)
         })
-    } catch let error as MKError {
+    } catch let error as MotionKitError {
       print("Error: \(error)")
     } catch {
       XCTFail()

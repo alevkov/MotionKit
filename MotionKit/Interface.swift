@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum MKSensorType {
+public enum MotionSensor {
   case Accelerometer
   case Gyroscope
   case Magnetometer
@@ -16,7 +16,7 @@ public enum MKSensorType {
   case DeviceMotion
 }
 
-public enum MKTimeInterval {
+public enum TimeUnit {
   case Nanoseconds
   case Microseconds
   case Milliseconds
@@ -24,7 +24,7 @@ public enum MKTimeInterval {
   case Minutes
 }
 
-public enum MKError: Error {
+public enum MotionKitError: Error {
   case AccelerometerNotAvailable
   case GyroscopeNotAvailable
   case MagnetometerNotAvailable
@@ -34,7 +34,7 @@ public enum MKError: Error {
   case SensorIntervalNotSet
 }
 
-public protocol MKProtocol {
+public protocol MotionKitProtocol {
   /**
    Subcribe to a parrticular motion sensor.
    
@@ -45,7 +45,7 @@ public protocol MKProtocol {
    
    - returns: the current MotionKit instance.
    */
-  func subcribe(_ to: MKSensorType, handler: @escaping (_ data: AbstractMotion?, _ error: Error?) -> ()) throws -> MotionKit
+  func subcribe(_ to: MotionSensor, handler: @escaping (_ data: Motion?, _ error: Error?) -> ()) throws -> MotionKit
   
   /**
    Unsubscribe from a parrticular motion sensor.
@@ -56,7 +56,7 @@ public protocol MKProtocol {
    
    - returns: the current MotionKit instance.
    */
-  func unsubscribe(_ from: MKSensorType) throws -> MotionKit
+  func unsubscribe(_ from: MotionSensor) throws -> MotionKit
   
   /**
    Set the sampling period for a sensor. Will have no effect on the Altimeter sampling period.
@@ -66,7 +66,7 @@ public protocol MKProtocol {
    
    - returns: the current MotionKit instance.
    */
-  func update(_ sensor: MKSensorType, every: TimeInterval, _ timeInterval: MKTimeInterval) -> MotionKit
+  func update(_ sensor: MotionSensor, every: TimeInterval, _ timeUnit: TimeUnit) -> MotionKit
   
   /**
    Set the sampling period for all motion sensors (except Altimeter).
@@ -75,7 +75,7 @@ public protocol MKProtocol {
    
    - returns: the current MotionKit instance.
    */
-  func updateAll(every: TimeInterval, _ timeInterval: MKTimeInterval) -> MotionKit
+  func updateAll(every: TimeInterval, _ timeUnit: TimeUnit) -> MotionKit
   
   /**
    Set the sampling period for all motion sensors (except the provided list of sensors, and Altimeter).
@@ -85,5 +85,5 @@ public protocol MKProtocol {
    
    - returns: the current MotionKit instance.
    */
-  func updateAll(except: [MKSensorType], every: TimeInterval, _ timeInterval: MKTimeInterval) -> MotionKit
+  func updateAll(except: [MotionSensor], every: TimeInterval, _ timeUnit: TimeUnit) -> MotionKit
 }

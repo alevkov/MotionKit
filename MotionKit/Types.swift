@@ -9,7 +9,7 @@
 import Foundation
 import CoreMotion
 
-public class AbstractMotion {
+public class Motion {
   
   public var timestamp: Date
 
@@ -18,7 +18,7 @@ public class AbstractMotion {
   }
 }
 
-public class Inertial: AbstractMotion {
+public class Inertial: Motion {
   
   public var x: Double
   public var y: Double
@@ -53,7 +53,7 @@ public class MagneticField: Inertial {
   }
 }
 
-public class DeviceMotion: AbstractMotion {
+public class DeviceMotion: Motion {
   
   public var motion: CMDeviceMotion
   
@@ -63,7 +63,7 @@ public class DeviceMotion: AbstractMotion {
   }
 }
 
-public class Altitude: AbstractMotion {
+public class Altitude: Motion {
   
   public var relativeAltitude: NSNumber
   public var pressure: NSNumber
