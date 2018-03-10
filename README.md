@@ -2,6 +2,8 @@
 
 A lightweight wrapper around some CoreMotion utilities for subscribing to motion sensor data.
 
+> How do I use it?
+
 ```Swift
 do {
   let _ = try MotionKit()
